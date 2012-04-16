@@ -33,8 +33,9 @@ class tmhOAuth {
         'user_agent'                 => '',
 
         'use_ssl'                    => true,
-        'host'                       => 'api.twitter.com',
-
+        'host'                       => 'sandbox.evernote.com',
+      // to switch to production, change the host value
+	  // 'host'                       => 'www.evernote.com',
         'consumer_key'               => '',
         'consumer_secret'            => '',
         'user_token'                 => '',

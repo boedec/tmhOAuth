@@ -26,6 +26,8 @@
 
 require '../tmhOAuth.php';
 require '../tmhUtilities.php';
+
+// To switch to production, update the file ../tmhOAuth.php line 36
 $tmhOAuth = new tmhOAuth(array(
   'consumer_key'    => 'YOUR_CONSUMER_KEY',
   'consumer_secret' => 'YOUR_CONSUMER_SECRET',
@@ -46,22 +48,21 @@ if ( isset($_REQUEST['wipe'])) {
 
 // already got some credentials stored?
 } elseif ( isset($_SESSION['access_token']) ) {
-  $tmhOAuth->config['user_token']  = $_SESSION['access_token']['oauth_token'];
-  $tmhOAuth->config['user_secret'] = $_SESSION['access_token']['oauth_token_secret'];
+	// We have all the required information to make calls to the Evernote Cloud API 
+	// Learn more: dev.evernote.com
+	print "<h2>Connection successful</h2><br />";
+	print "<b>NoteStore URL: </b>" . $_SESSION['access_token']["edam_noteStoreUrl"];
+	print "<br />";
+	print "<b>Authentication token:</b> " . $_SESSION['access_token']["oauth_token"];
+	print "<br /><br />";
+	print "You can start using the <a href='http://dev.evernote.com'>Evernote Cloud API</a>";
 
-  $code = $tmhOAuth->request('GET', $tmhOAuth->url('1/account/verify_credentials'));
-  if ($code == 200) {
-    $resp = json_decode($tmhOAuth->response['response']);
-    echo $resp->screen_name;
-  } else {
-    outputError($tmhOAuth);
-  }
 // we're being called back by Twitter
 } elseif (isset($_REQUEST['oauth_verifier'])) {
   $tmhOAuth->config['user_token']  = $_SESSION['oauth']['oauth_token'];
   $tmhOAuth->config['user_secret'] = $_SESSION['oauth']['oauth_token_secret'];
 
-  $code = $tmhOAuth->request('POST', $tmhOAuth->url('oauth/access_token', ''), array(
+  $code = $tmhOAuth->request('POST', $tmhOAuth->url('oauth', ''), array(
     'oauth_verifier' => $_REQUEST['oauth_verifier']
   ));
 
@@ -86,13 +87,12 @@ if ( isset($_REQUEST['wipe'])) {
     $params['x_auth_access_type'] = 'read';
   endif;
 
-  $code = $tmhOAuth->request('POST', $tmhOAuth->url('oauth/request_token', ''), $params);
+  $code = $tmhOAuth->request('POST', $tmhOAuth->url('oauth', ''), $params);
 
   if ($code == 200) {
     $_SESSION['oauth'] = $tmhOAuth->extract_params($tmhOAuth->response['response']);
-    $method = isset($_REQUEST['authenticate']) ? 'authenticate' : 'authorize';
-    $force  = isset($_REQUEST['force']) ? '&force_login=1' : '';
-    $authurl = $tmhOAuth->url("oauth/{$method}", '') .  "?oauth_token={$_SESSION['oauth']['oauth_token']}{$force}";
+
+    $authurl = $tmhOAuth->url("OAuth.action", '') .  "?oauth_token={$_SESSION['oauth']['oauth_token']}";
     echo '<p>To complete the OAuth flow follow this URL: <a href="'. $authurl . '">' . $authurl . '</a></p>';
   } else {
     outputError($tmhOAuth);
@@ -101,12 +101,6 @@ if ( isset($_REQUEST['wipe'])) {
 
 ?>
 <ul>
-  <li><a href="?authenticate=1">Sign in with Twitter</a></li>
-  <li><a href="?authenticate=1&amp;force=1">Sign in with Twitter (force login)</a></li>
-  <li><a href="?authorize=1">Authorize Application (with callback)</a></li>
-  <li><a href="?authorize=1&amp;oob=1">Authorize Application (oob - pincode flow)</a></li>
-  <li><a href="?authorize=1&amp;force_read=1">Authorize Application (with callback) (force read-only permissions)</a></li>
-  <li><a href="?authorize=1&amp;force_write=1">Authorize Application (with callback) (force read-write permissions)</a></li>
-  <li><a href="?authorize=1&amp;force=1">Authorize Application (with callback) (force login)</a></li>
+  <li><a href="?authenticate=1">Sign in with Evernote</a></li>
   <li><a href="?wipe=1">Start Over and delete stored tokens</a></li>
 </ul>
